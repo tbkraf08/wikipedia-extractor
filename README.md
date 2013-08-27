@@ -7,12 +7,12 @@ Addition
 added is import.py, currently it parses the output from 
 WikiExtractor.py (in the text form) and print out the files in
 order. Ontop of parsing it also passes the text through nltk's
-named entity extraction.  The extraction is slow so may need to 
-parallize it.
+named entity extraction if you add '-ner true' to the end of the command.  
+The extraction is slow so may need to parallize it.
 
 after running WikiExtractor -o outfolder
 
->python import.py -f outfolder
+>python import.py -f outfolder 
 
 
 
