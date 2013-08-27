@@ -298,26 +298,26 @@ class ResolveDict(object):
 	
 	
 def main(args):
-	print '1'
-	m = MongoBase('localhost', '27017', 'wiki_test', True)
-	m.add('wiki_test',{'a':'b'})
+	#print '1'
+	#m = MongoBase('localhost', '27017', 'wiki_test', True)
+	#m.add('wiki_test',{'a':'b'})
 	# default
-	#BASEDIR = os.getcwd()
-	#FOLDER = os.path.join(BASEDIR, 'clean-text')
+	BASEDIR = os.getcwd()
+	FOLDER = os.path.join(BASEDIR, 'clean-text')
 	
 
 	
-	#if '-f' in args:
-		#FOLDER = os.path.join(BASEDIR, args['-f'])
+	if '-f' in args:
+		FOLDER = os.path.join(BASEDIR, args['-f'])
 	
-	#NER_bool = False
-	#if '-ner' in args:
-		#NER_bool = True
+	NER_bool = False
+	if '-ner' in args:
+		NER_bool = True
 
 	
 	
-	#if FOLDER:
-		#handle_wiki_stream(FOLDER,NER_bool)
+	if FOLDER:
+		handle_wiki_stream(FOLDER,NER_bool)
 	
 if __name__ == '__main__':
 	argv = sys.argv[1:]
