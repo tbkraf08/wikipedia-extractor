@@ -194,16 +194,16 @@ def handle_wiki_stream(FOLDER, NER_bool):
 			doc = {}
 				
 		elif line[:4] == '<doc' and line[-1] == '>':
-			ls_line = line.split()
+			ls_line = line.split('"')
+	
+			is len(ls_line) > 6:
+				doc['id'] = ls_line[2]
+				doc['url'] = ls_line[4]
+				doc['title'] = ls_line[6]
+			
 			print ls_line
-			for item in ls_line:
-				ls_item = item.split('=')
-				
-				if len(ls_item) == 2 :
-					key = ls_item[0].replace('"><', '')
-					value = ls_item[1].replace('"><', '')
-					
-					doc[key] = value
+			print doc
+			print
 			
 			doc['text'] = '' 
 			#doc = ''#''line.strip() + '\n'
