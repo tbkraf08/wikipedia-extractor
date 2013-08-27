@@ -195,7 +195,7 @@ def handle_wiki_stream(FOLDER, NER_bool):
 				
 		elif line[:4] == '<doc' and line[-1] == '>':
 			ls_line = line.split()
-			
+			print ls_line
 			for item in ls_line:
 				ls_item = item.split('=')
 				
