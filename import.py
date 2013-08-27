@@ -10,12 +10,15 @@ import os
 
 
 # HANDLE DOCUMENT
-def process_page(doc):
-	entities = named_entities(doc)
-	rd = ResolveDict(entities)
-	entities = rd.getEntities()
-	
-	print '[PROCESS_PAGE]\n',entities,'\n',doc
+def process_page(doc, NER_bool):
+	if NER_bool:
+		entities = named_entities(doc)
+		rd = ResolveDict(entities)
+		entities = rd.getEntities()
+		
+		print '[PROCESS_PAGE]\n',entities,'\n',doc
+	else:
+		print '[PROCESS_PAGE]\n',doc
 
 
 # named entity recognition (NER) using nltk
@@ -76,7 +79,7 @@ def named_entities(text):
 
 
 def traverse(folder):	
-	print folder
+	#print folder
 	for root, subFolders, files in os.walk(folder):
 		# files and folders are indexed
 		subFolders.sort()
@@ -95,7 +98,8 @@ def traverse(folder):
 				for line in f:
 					yield line	
 	
-def handle_wiki_stream(FOLDER):
+def handle_wiki_stream(FOLDER, NER_bool):
+
 	wikipedia = traverse(FOLDER)
 	
 	for line in wikipedia:
@@ -103,7 +107,7 @@ def handle_wiki_stream(FOLDER):
 		
 		if line == '</doc>':
 			#doc += line + '\n'
-			process_page(doc)
+			process_page(doc, NER_bool)
 				
 		elif line[:4] == '<doc' and line[-1] == '>':
 			doc = ''#''line.strip() + '\n'
@@ -207,9 +211,15 @@ def main(args):
 	
 	if '-f' in args:
 		FOLDER = os.path.join(BASEDIR, args['-f'])
-		
+	
+	NER_bool = False
+	if '-ner' in args:
+		NER_bool = True
+
+	
+	
 	if FOLDER:
-		handle_wiki_stream(FOLDER)
+		handle_wiki_stream(FOLDER,NER_bool)
 	
 if __name__ == '__main__':
 	argv = sys.argv[1:]
