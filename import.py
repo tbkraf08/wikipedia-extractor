@@ -191,6 +191,7 @@ def handle_wiki_stream(FOLDER, NER_bool):
 		if line == '</doc>':
 			#doc += line + '\n'
 			process_page(doc, NER_bool)
+			doc = {}
 				
 		elif line[:4] == '<doc' and line[-1] == '>':
 			ls_line = line.split()
@@ -205,7 +206,7 @@ def handle_wiki_stream(FOLDER, NER_bool):
 					doc[key] = value
 			
 			doc['text'] = '' 
-			doc = ''#''line.strip() + '\n'
+			#doc = ''#''line.strip() + '\n'
 		else:
 			doc['text'] += line.strip() + '\n'
 			
