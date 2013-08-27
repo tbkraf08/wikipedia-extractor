@@ -9,8 +9,9 @@ import os
 import pymongo
 
 
+
 # HANDLE DOCUMENT
-def process_page(doc, NER_bool):
+def process_page(doc, NER_bool, mongo):
 	if NER_bool:
 		entities = named_entities(doc)
 		rd = ResolveDict(entities)
@@ -18,9 +19,10 @@ def process_page(doc, NER_bool):
 		
 		print '[PROCESS_PAGE]\n',entities,'\n',doc
 	else:
-		print '[PROCESS_PAGE]\n',doc
+		print '[PROCESS_PAGE]\n',doc['title']
 		
-	print doc.keys()
+	if mongo:
+		mongo.add('clean', doc)
 	
 	
 
@@ -95,10 +97,9 @@ class MongoBase(object):
 	def __del__(self):
 		self.__exit__()
 		
-	def add(self, database, doc):
+	def add(self, collection, doc):
 		if self.conn:
-			self.db[database].insert(doc)
-			
+			self.db[collection].insert(doc)
 		else:
 			print self.mTag, '[CONNECTION ERROR] [add]'
 
@@ -180,7 +181,7 @@ def traverse(folder):
 				for line in f:
 					yield line	
 	
-def handle_wiki_stream(FOLDER, NER_bool):
+def handle_wiki_stream(FOLDER, NER_bool, mongo):
 
 	wikipedia = traverse(FOLDER)
 	doc = {}
@@ -190,20 +191,17 @@ def handle_wiki_stream(FOLDER, NER_bool):
 		
 		if line == '</doc>':
 			#doc += line + '\n'
-			process_page(doc, NER_bool)
+			process_page(doc, NER_bool, mongo)
 			doc = {}
 				
 		elif line[:4] == '<doc' and line[-1] == '>':
 			ls_line = line.split('"')
-	
-			is len(ls_line) > 6:
-				doc['id'] = ls_line[2]
-				doc['url'] = ls_line[4]
-				doc['title'] = ls_line[6]
 			
-			print ls_line
-			print doc
-			print
+			if len(ls_line) > 5:
+				doc['id'] = ls_line[1]
+				doc['url'] = ls_line[3]
+				doc['title'] = ls_line[5]
+			
 			
 			doc['text'] = '' 
 			#doc = ''#''line.strip() + '\n'
@@ -305,8 +303,17 @@ def main(args):
 	# default
 	BASEDIR = os.getcwd()
 	FOLDER = os.path.join(BASEDIR, 'clean-text')
+	mongo = None
+	if '-d' in args:
+		db = args['-d']
 	
-
+	if '-p' in args:
+		port = args['-p']
+	
+	if '-h' in args:
+		host = args['-h']
+		
+		mongo = MongoBase(host, port, db, True)
 	
 	if '-f' in args:
 		FOLDER = os.path.join(BASEDIR, args['-f'])
@@ -318,7 +325,7 @@ def main(args):
 	
 	
 	if FOLDER:
-		handle_wiki_stream(FOLDER,NER_bool)
+		handle_wiki_stream(FOLDER,NER_bool, mongo)
 	
 if __name__ == '__main__':
 	argv = sys.argv[1:]
