@@ -6,7 +6,7 @@
 import nltk
 import sys
 import os
-
+import pymongo
 
 
 # HANDLE DOCUMENT
@@ -19,6 +19,88 @@ def process_page(doc, NER_bool):
 		print '[PROCESS_PAGE]\n',entities,'\n',doc
 	else:
 		print '[PROCESS_PAGE]\n',doc
+		
+	print doc.keys()
+	
+	
+
+
+class MongoBase(object):
+	def __init__(self, host=None, port=None, db_name=None, verbose=True):
+	
+
+		self.mTag = '[MongoBase]'
+		self.verbose = True
+
+
+
+		if not host:
+			# defualt: 152.15.99.7
+			host = 'localhost'
+		self.host = host
+
+
+		if not port:
+			# defualt: 27017
+			port = '27017'
+		self.port = port
+
+
+
+		if not db_name:
+			# default: twitter
+			db_name = 'default'
+		self.db_name = db_name
+
+		mongodb_uri = 'mongodb://'+host+':'+port
+
+		try:
+			# pymongo objects
+			self.conn = pymongo.Connection(mongodb_uri)
+			self.db = self.conn[self.db_name]
+
+			if verbose:
+				print self.mTag,'successfully connected to:', mongodb_uri, 'using db:', db_name
+			
+		except:
+			print self.mTag,'[CONNECTION ERROR] [__init__]'
+			traceback.print_exc(file=sys.stdout)
+			self.conn = None
+
+
+	def close(self):
+		if self.conn:
+			self.conn.disconnect()
+
+			if self.verbose:
+				print self.mTag, 'Closed connection to', self.host,'db:',self.db_name
+
+	def setMtag(self, mTag):
+		self.mTag = mTag
+
+	def __str__(self):
+		host = self.host
+		port = self.port
+		db_name = self.db_name
+		mTag = self.mTag
+
+		return mTag+' object: '+'mongodb://'+host+':'+port+'  db: '+db_name
+
+	def __repr__(self):
+		return self.__str__()
+
+	def __exit__(self):
+		self.close()
+	
+	def __del__(self):
+		self.__exit__()
+		
+	def add(self, database, doc):
+		if self.conn:
+			self.db[database].insert(doc)
+			
+		else:
+			print self.mTag, '[CONNECTION ERROR] [add]'
 
 
 # named entity recognition (NER) using nltk
@@ -101,6 +183,7 @@ def traverse(folder):
 def handle_wiki_stream(FOLDER, NER_bool):
 
 	wikipedia = traverse(FOLDER)
+	doc = {}
 	
 	for line in wikipedia:
 		line = line.strip()
@@ -110,9 +193,21 @@ def handle_wiki_stream(FOLDER, NER_bool):
 			process_page(doc, NER_bool)
 				
 		elif line[:4] == '<doc' and line[-1] == '>':
+			ls_line = line.split()
+			
+			for item in ls_line:
+				ls_item = item.split('=')
+				
+				if len(ls_item) == 2 :
+					key = ls_item[0].replace('"><', '')
+					value = ls_item[1].replace('"><', '')
+					
+					doc[key] = value
+			
+			doc['text'] = '' 
 			doc = ''#''line.strip() + '\n'
 		else:
-			doc += line.strip() + '\n'
+			doc['text'] += line.strip() + '\n'
 			
 # class to resolve entity names
 class ResolveDict(object):
@@ -203,23 +298,26 @@ class ResolveDict(object):
 	
 	
 def main(args):
+	print '1'
+	m = MongoBase('localhost', '27017', 'wiki_test', True)
+	m.add('wiki_test',{'a':'b'})
 	# default
-	BASEDIR = os.getcwd()
-	FOLDER = os.path.join(BASEDIR, 'clean-text')
+	#BASEDIR = os.getcwd()
+	#FOLDER = os.path.join(BASEDIR, 'clean-text')
 	
 
 	
-	if '-f' in args:
-		FOLDER = os.path.join(BASEDIR, args['-f'])
+	#if '-f' in args:
+		#FOLDER = os.path.join(BASEDIR, args['-f'])
 	
-	NER_bool = False
-	if '-ner' in args:
-		NER_bool = True
+	#NER_bool = False
+	#if '-ner' in args:
+		#NER_bool = True
 
 	
 	
-	if FOLDER:
-		handle_wiki_stream(FOLDER,NER_bool)
+	#if FOLDER:
+		#handle_wiki_stream(FOLDER,NER_bool)
 	
 if __name__ == '__main__':
 	argv = sys.argv[1:]
